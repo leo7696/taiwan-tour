@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台灣漫遊地圖 - 全台景點、歷史文物、老街與夜市完整指南</title>
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --accent: #f59e0b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px 16px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .filter-panel {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 10px 18px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+    }
+    .btn-accent:hover {
+      background: #d97706;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .filter-label {
+      font-weight: bold;
+      color: var(--text-muted);
+      min-width: 45px;
+    }
+
+    .pill-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .pill-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .pill-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .spot-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .spot-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .spot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .spot-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .fav-btn {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: #cbd5e1;
+      transition: color 0.2s;
+    }
+
+    .fav-btn.active {
+      color: #ef4444;
+    }
+
+    .spot-meta {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .meta-tag {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .meta-tag.region {
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+    .spot-desc {
+      font-size: 0.9rem;
+      color: #475569;
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+
+    .spot-footer {
+      display: flex;
+      justify-content: flex-end;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .spot-footer a {
+      font-size: 0.85rem;
+      color: var(--primary-dark);
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .spot-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      animation: pop 0.25s ease-out;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .empty-state {
+      text-align: center;
+      grid-column: 1 / -1;
+      padding: 60px 0;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🧭 台灣漫遊地圖</h1>
+      <p>探索全台精選私房景點、知名老街與夜市美食！</p>
+    </header>
+
+    <div class="filter-panel">
+      <div class="search-row">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 搜尋綠島、高雄夜市、老街、古蹟或關鍵字...">
+        <button class="btn btn-accent" id="randomBtn">🎲 幫我選！隨機推薦</button>
+        <button class="btn btn-outline" id="favFilterBtn">❤️ 我的口袋名單 (<span id="favCount">0</span>)</button>
+      </div>
+
+      <!-- 第一層地區 -->
+      <div class="filter-group">
+        <span class="filter-label">地區：</span>
+        <button class="pill-btn active" data-region="all">全部地區</button>
+        <button class="pill-btn" data-region="北部">北部</button>
+        <button class="pill-btn" data-region="中部">中部</button>
+        <button class="pill-btn" data-region="南部">南部</button>
+        <button class="pill-btn" data-region="東部">東部</button>
+        <button class="pill-btn" data-region="離島">離島</button>
+      </div>
+
+      <!-- 第二層縣市（綠島、蘭嶼、小琉球獨立） -->
+      <div class="filter-group" id="cityGroupWrapper">
+        <span class="filter-label">縣市：</span>
+        <div id="cityContainer" style="display: inline-flex; flex-wrap: wrap; gap: 8px;"></div>
+      </div>
+
+      <!-- 主題篩選 -->
+      <div class="filter-group">
+        <span class="filter-label">主題：</span>
+        <button class="pill-btn active" data-category="all">全部主題</button>
+        <button class="pill-btn" data-category="文化歷史">文化歷史</button>
+        <button class="pill-btn" data-category="夜市美食">夜市美食</button>
+        <button class="pill-btn" data-category="老街市集">老街市集</button>
+        <button class="pill-btn" data-category="自然風景">自然風景</button>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <span>目前顯示景點：<strong id="displayCount">0</strong> 個</span>
+      <span id="activeFilterDesc">全部景點</span>
+    </div>
+
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+
+  <div class="modal" id="randomModal">
+    <div class="modal-content">
+      <div style="font-size: 2.5rem; margin-bottom: 12px;">🎉</div>
+      <h3 style="color: var(--text-muted); font-size: 0.95rem;">本週推薦你的好去處</h3>
+      <h2 id="modalSpotName" style="color: var(--primary-dark); margin: 8px 0 16px; font-size: 1.6rem;"></h2>
+      <p id="modalSpotDesc" style="color: #475569; font-size: 0.95rem; margin-bottom: 24px; line-height: 1.6;"></p>
+      <div style="display: flex; gap: 8px; justify-content: center;">
+        <a id="modalMapLink" href="#" target="_blank" class="btn" style="text-decoration: none;">📍 Google 地圖</a>
+        <button class="btn btn-outline" id="closeModalBtn">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const REGION_CITIES = {
+      "北部": ["台北市", "新北市", "基隆市", "桃園市", "新竹縣", "新竹市", "宜蘭縣"],
+      "中部": ["台中市", "苗栗縣", "彰化縣", "南投縣", "雲林縣"],
+      "南部": ["高雄市", "台南市", "嘉義縣", "嘉義市", "屏東縣"],
+      "東部": ["花蓮縣", "台東縣"],
+      "離島": ["澎湖縣", "金門縣", "連江縣(馬祖)", "綠島", "蘭嶼", "小琉球"]
+    };
+
+    const SPOTS_DATA = [
+      // ════════════════════ 綠島 (老街、監獄人權歷史、自然風景) ════════════════════
+      { id: 1, name: "綠島南寮老街", region: "離島", city: "綠島", category: "老街市集", desc: "綠島最繁華的核心街區，聚集海草冰品、鹿肉乾、飛魚乾、手作紀念品店與特色海味炸物。" },
+      { id: 2, name: "柴口海味市集商圈", region: "離島", city: "綠島", category: "老街市集", desc: "潛水愛好者聚集的濱海商圈，品嚐現烤海鮮、石板烤肉、清涼仙草凍與潛水裝備租售。" },
+      { id: 3, name: "綠洲山莊（國防部綠島感訓監獄）", region: "離島", city: "綠島", category: "文化歷史", desc: "白色恐怖時期高壓關押政治犯的封閉式高牆監獄，完整保留八角樓牢房、放風場與獨居禁閉室。" },
+      { id: 4, name: "新生訓導處舊址與蠟像館", region: "離島", city: "綠島", category: "文化歷史", desc: "1950年代集中營舊址，以等身蠟像重現政治受難者克難打石、就寢與勞役的歷史記憶。" },
+      { id: 5, name: "綠島人權紀念碑（垂淚碑）", region: "離島", city: "綠島", category: "文化歷史", desc: "建築大師漢寶德設計，沿斜坡步道走入地底凹谷，牆面刻滿白色恐怖受難者姓名，氣氛肅穆震撼。" },
+      { id: 6, name: "綠島燈塔歷史建築", region: "離島", city: "綠島", category: "文化歷史", desc: "1937年美國郵輪胡佛總統號觸礁，島民奮勇營救，美國紅十字會為感念義舉捐建純白燈塔。" },
+      { id: 7, name: "朝日溫泉海岸潮間帶", region: "離島", city: "綠島", category: "自然風景", desc: "世界僅三處罕見的海水海底溫泉，泡在珊瑚礁潮間帶圓形露天溫泉池中迎接太平洋日出。" },
+      { id: 8, name: "睡美人與哈巴狗岩", region: "離島", city: "綠島", category: "自然風景", desc: "火山熔岩與海水長期侵蝕形成的逼真天然巨岩，從小長城步道高處俯瞰輪廓栩栩如生。" },
+      { id: 9, name: "大白沙潛水區珊瑚礁棧道", region: "離島", city: "綠島", category: "自然風景", desc: "長長的木棧道一路延伸進果凍海中，兩側為純淨白色貝殼沙灘與壯麗世界級珊瑚裙礁。" },
+      { id: 10, name: "柚子湖天然海蝕門與藍洞", region: "離島", city: "綠島", category: "自然風景", desc: "古老火山口殘留遺跡，擁有巨大的天然海蝕穿洞與神秘幽深的清澈藍洞秘境冷泉。" },
+      { id: 11, name: "帆船鼻大草原", region: "離島", city: "綠島", category: "自然風景", desc: "朝日溫泉旁的平坦台地高台，有綠島地毯美稱，春季綠草如茵，俯瞰火山海岸海景。" },
+
+      // ════════════════════ 蘭嶼 (老街市集、原民文化、自然風景) ════════════════════
+      { id: 12, name: "紅頭部落飛魚老街", region: "離島", city: "蘭嶼", category: "老街市集", desc: "島上生活機能最齊全的聚落老街，聚集飛魚炒飯、芋頭冰、郵局與在地特色手作餐廳。" },
+      { id: 13, name: "東清部落夜市與手作市集", region: "離島", city: "蘭嶼", category: "老街市集", desc: "蘭嶼最熱鬧夜間市集，位於東清灣旁，販售飛魚卵香腸、小米甜甜圈、原民串珠手環與手繪明信片。" },
+      { id: 14, name: "野銀舊部落老街", region: "離島", city: "蘭嶼", category: "老街市集", desc: "漫步傳統與現代交錯的野銀聚落，品嚐手作地瓜派、林投果汁與欣賞傳統達悟族圖騰刺繡。" },
+      { id: 15, name: "野銀部落傳統地下屋聚落", region: "離島", city: "蘭嶼", category: "文化歷史", desc: "全台唯一完整保存的達悟族傳統半穴居地下屋，順應強烈颱風氣候發展的傳統智慧建築國寶。" },
+      { id: 16, name: "蘭嶼文物館", region: "離島", city: "蘭嶼", category: "文化歷史", desc: "典藏達悟族傳統水銀木拼板舟、陶甕、藤編盔甲、銀盔與飛魚季祭儀文物的文化核心館舍。" },
+      { id: 17, name: "東清灣拼板舟文化聚落", region: "離島", city: "蘭嶼", category: "文化歷史", desc: "台灣第一道曙光照耀的海灣，金色晨曦映襯達悟族紅白黑幾何圖騰拼板舟，神聖優美。" },
+      { id: 18, name: "蘭嶼青青草原", region: "離島", city: "蘭嶼", category: "自然風景", desc: "南端隆起珊瑚礁高台草原，視野遼闊一望無際，是觀看太平洋落日晚霞與壯美銀河首選。" },
+      { id: 19, name: "情人洞天然海蝕拱門", region: "離島", city: "蘭嶼", category: "自然風景", desc: "海浪長期沖刷掏空形成的巨型天然海蝕石門，洞下浪濤奔騰發出雷鳴巨響，磅礡震撼。" },
+      { id: 20, name: "野銀白沙冷泉", region: "離島", city: "蘭嶼", category: "自然風景", desc: "山脈淡水地下湧泉與太平洋海水在礁岩白沙間交會，水溫清涼沁骨，白沙礁岩相互輝映。" },
+
+      // ════════════════════ 小琉球 (老街、歷史古蹟、自然風景) ════════════════════
+      { id: 21, name: "白沙尾碼頭老街商圈", region: "離島", city: "小琉球", category: "老街市集", desc: "小琉球迎賓第一站老街，整條街排滿現炸現搓麻花捲、海龜燒蛋糕、黑糖包與現切水果冰品。" },
+      { id: 22, name: "三民老街美食商圈", region: "離島", city: "小琉球", category: "老街市集", desc: "島上最繁華街區，老街販售小蝌蚪起司餅、相思麵、爆漿黑糖包與現撈旗魚黑輪。" },
+      { id: 23, name: "烏鬼洞歷史遺址石碑", region: "離島", city: "小琉球", category: "文化歷史", desc: "立有紀念1636年荷蘭東印度公司發動拉美島事件的歷史石碑，見證小琉球平埔原住民滄桑史。" },
+      { id: 24, name: "小琉球碧雲寺", region: "離島", city: "小琉球", category: "文化歷史", desc: "創建於清乾隆年間的小琉球百年信仰中心，供奉觀音佛祖，為全島討海漁民祈求平安的精神寄託。" },
+      { id: 25, name: "花瓶岩浮潛區", region: "離島", city: "小琉球", category: "自然風景", desc: "小琉球地標，珊瑚礁岩受地殼隆起與海水侵蝕形成頭大身細的花瓶石，常遇野生綠蠵龜覓食。" },
+      { id: 26, name: "蛤板灣（威尼斯沙灘）", region: "離島", city: "小琉球", category: "自然風景", desc: "琉球嶼最大規模的純淨白色貝殼沙灘，水質湛藍透明，漫步賞金色夕陽餘暉灑落海面。" },
+      { id: 27, name: "山豬溝生態步道", region: "離島", city: "小琉球", category: "自然風景", desc: "珊瑚礁斷崖間形成的天然溝渠，保留最完整熱帶雨林植物、高大雀榕氣根與蕨類生態景觀。" },
+      { id: 28, name: "美人洞海蝕礁岩步道", region: "離島", city: "小琉球", category: "自然風景", desc: "背山面海的珊瑚礁石灰岩洞穴群，背仔礁、望海亭等十三景俯瞰清澈珊瑚礁裙與海龜巡遊。" },
+      { id: 29, name: "小琉球落日亭", region: "離島", city: "小琉球", category: "自然風景", desc: "臨海高台上視野毫無遮蔽，眺望台灣海峽壯麗的西半球海平面夕照地平線，傍晚涼風徐徐。" },
+
+      // ════════════════════ 澎湖縣 (老街、夜市、古蹟、自然) ════════════════════
+      { id: 30, name: "馬公中央老街", region: "離島", city: "澎湖縣", category: "老街市集", desc: "澎湖開闢最早的一條古老街區，穿梭咾咕石摸乳巷，品嚐藥膳蛋、黑糖糕與參觀四眼井古蹟。" },
+      { id: 31, name: "二崁聚落傳統老街", region: "離島", city: "澎湖縣", category: "老街市集", desc: "完整保留閩南合院古厝街區，販售現烤小卷乾、杏仁茶、土仁粿與二崁傳香手作香。" },
+      { id: 32, name: "通梁古榕老街商圈", region: "離島", city: "澎湖縣", category: "老街市集", desc: "跨海大橋旁三百多年遮天榕樹下老街，必吃仙人掌冰淇淋、炸丁香魚與澎湖特色海菜煎餅。" },
+      { id: 33, name: "西嶼西臺（西嶼古堡）", region: "離島", city: "澎湖縣", category: "文化歷史", desc: "國定古蹟，清法戰爭後興建的現代化海防砲台，擁有堅固拱頂坑道與雄偉英國阿姆斯壯大砲。" },
+      { id: 34, name: "篤行十村眷村文化園區", region: "離島", city: "澎湖縣", category: "文化歷史", desc: "全台最老眷村，設有張雨生與潘安邦《外婆的澎湖灣》紀念館，充滿文青復古拍照場景。" },
+      { id: 35, name: "澎湖天后宮", region: "離島", city: "澎湖縣", category: "文化歷史", desc: "全台灣歷史最悠久的媽祖廟，國定古蹟，保存珍貴的明代「沈有容諭退紅毛番韋麻郎等」石碑。" },
+      { id: 36, name: "澎湖文澳夜市", region: "離島", city: "澎湖縣", category: "夜市美食", desc: "澎湖唯一的常設觀光夜市，品嚐炸小管、現炒海瓜子與澎湖限定花枝丸。" },
+      { id: 37, name: "奎壁山摩西分海", region: "離島", city: "澎湖縣", category: "自然風景", desc: "配合潮汐退潮時現身的玄武岩礫石踏浪步道，如奇蹟般的走入海中。" },
+      { id: 38, name: "大菓葉柱狀玄武岩", region: "離島", city: "澎湖縣", category: "自然風景", desc: "因採土整地意外出土的巨型柱狀玄武岩，雨後窪地積水倒映出雄偉岩壁。" },
+
+      // ════════════════════ 金門縣 (老街、戰地歷史、自然) ════════════════════
+      { id: 39, name: "金門模範街", region: "離島", city: "金門縣", category: "老街市集", desc: "紅磚拱廊巴洛克風格牌樓街屋，插滿國旗，販售現烤燒餅、高粱蛋捲、一條根與高粱酒冰淇淋。" },
+      { id: 40, name: "金門明遺老街", region: "離島", city: "金門縣", category: "老街市集", desc: "金門城北門外明代保留至今的老街，被譽為「台澎金馬第一街」，石板路與古樸木門極具滄桑美感。" },
+      { id: 41, name: "沙美老街（沙美摩洛哥）", region: "離島", city: "金門縣", category: "老街市集", desc: "昔日金沙鎮最繁榮商圈，倒塌殘破的泥黃色老土屋神似北非沙漠古城，周邊販售傳統閩式燒餅。" },
+      { id: 42, name: "陽翟老街（軍中樂園拍攝地）", region: "離島", city: "金門縣", category: "老街市集", desc: "重現六零年代十萬大軍駐紮時期的軍事街景，理髮店、冰果室、電影院招牌充滿歷史風情。" },
+      { id: 43, name: "古寧頭戰史館與反登陸陣地", region: "離島", city: "金門縣", category: "文化歷史", desc: "紀念1949年古寧頭戰役，陳列大型歷史油畫、戰役沙盤與被稱為「金門之熊」的 M5A1 戰車。" },
+      { id: 44, name: "北山播音牆", region: "離島", city: "金門縣", category: "文化歷史", desc: "直面廈門三層樓高水泥播音牆，擁有48組揚聲大喇叭，播放鄧麗君溫柔歌聲與心戰喊話。" },
+      { id: 45, name: "陳景蘭洋樓", region: "離島", city: "金門縣", category: "文化歷史", desc: "金門規模最大最華美的巴洛克雙層洋樓，曾作國軍野戰醫院與官兵休假中心，純白拱廊面海壯觀。" },
+      { id: 46, name: "翟山坑道", region: "離島", city: "金門縣", category: "文化歷史", desc: "人工從堅硬花崗岩盤開鑿的軍事 A 字型運補坑道，水波倒映戰地坑道鬼斧神工。" },
+      { id: 47, name: "水頭聚落得月樓", region: "離島", city: "金門縣", category: "文化歷史", desc: "防禦海盜的精緻防禦性洋樓建築與閩南古厝群，展現昔日僑鄉深厚歷史底蘊。" },
+      { id: 48, name: "建功嶼（金門摩西分海）", region: "離島", city: "金門縣", category: "自然風景", desc: "退潮時踏上石板路走上海中孤島，潮間帶兩側聳立巨大的牡蠣人裝置藝術。" },
+
+      // ════════════════════ 連江縣(馬祖) (老街、戰地坑道、自然) ════════════════════
+      { id: 49, name: "南竿津沙聚落老街", region: "離島", city: "連江縣(馬祖)", category: "老街市集", desc: "馬祖保存最完整的閩東石頭建築老聚落，石階老街飄著馬祖老酒香氣，品嚐老酒麵線與紅糟炒飯。" },
+      { id: 50, name: "南竿牛角聚落老街", region: "離島", city: "連江縣(馬祖)", category: "老街市集", desc: "依山勢層疊構築的花崗岩石屋古街，保留古老五行封火山牆與漁村文創小館。" },
+      { id: 51, name: "北竿芹壁石屋老街", region: "離島", city: "連江縣(馬祖)", category: "老街市集", desc: "馬祖地中海芹壁村石階巷弄，坐在石屋露天咖啡座眺望龜島，品嚐黃金地瓜餃與老酒咖啡。" },
+      { id: 52, name: "東莒大埔聚落老街", region: "離島", city: "連江縣(馬祖)", category: "老街市集", desc: "面海的花崗石傳統漁村聚落，白馬尊王廟古樸寧靜，保留傳統打魚人家的淳樸風貌。" },
+      { id: 53, name: "南竿鐵堡獨立礁要塞", region: "離島", city: "連江縣(馬祖)", category: "文化歷史", desc: "突出於海中的獨立花崗岩礁石要塞，內部挖空設有地下坑道、槍眼射口與軍犬軍籍紀念墓。" },
+      { id: 54, name: "安東坑道軍事遺址", region: "離島", city: "連江縣(馬祖)", category: "文化歷史", desc: "打穿二重山花崗岩層的巨大連級地下軍事基地，內部有連長室、中山室，出口直通黑尾鷗海蝕崖。" },
+      { id: 55, name: "八八坑道", region: "離島", city: "連江縣(馬祖)", category: "文化歷史", desc: "舊戰車坑道改為陳年馬祖老酒儲藏地，走入坑道滿室撲鼻純濃老酒香氣。" },
+      { id: 56, name: "南竿北海坑道", region: "離島", city: "連江縣(馬祖)", category: "自然風景", desc: "堅硬花崗岩壁鑿出的井字戰備水道，官兵日夜開鑿的血汗奇蹟，夜間搖櫓尋訪藍眼淚。" },
+
+      // ════════════════════ 南部地區：高雄市 (12大夜市 + 老街 + 文化 + 自然) ════════════════════
+      { id: 101, name: "瑞豐夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "高雄最火紅的巨型在地夜市，萬國牛排、天使雞排、石記臭豆腐與各國異國小吃匯聚。" },
+      { id: 102, name: "六合觀光夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "高雄知名老牌國際觀光夜市，鄭老牌木瓜牛奶、海產粥、烤肉之家與莊記海鮮老店。" },
+      { id: 103, name: "勞工夜市（一德夜市）", region: "南部", city: "高雄市", category: "夜市美食", desc: "高雄人週一限定必逛長街夜市，地瓜球、下港阿德煎餃與現打芭樂汁攤大排長龍。" },
+      { id: 104, name: "青年夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "前鎮大型常設夜市，阿Q凍圓、尚峰豆乳雞、珍好佳香雞排與排骨酥名氣響亮。" },
+      { id: 105, name: "自強夜市（苓雅夜市）", region: "南部", city: "高雄市", category: "夜市美食", desc: "苓雅自強三路傳統美食聚落，南豐滷肉飯、老牌白糖粿、極品當歸鴨每天大排長龍。" },
+      { id: 106, name: "吉林夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "高醫學生的宵夜天堂，阿亮香雞排、許記蒸餃、上海生煎包與現打木瓜牛奶滿街飄香。" },
+      { id: 107, name: "光華夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "在地歷史悠久的傳統老牌美食街，光華木瓜牛奶、倪家碳烤、輝哥鱔魚意麵老攤。" },
+      { id: 108, name: "忠孝夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "苓雅在地人的早晚廚房，國民市場旁聚集素食麵線羹、烤鴨與黃家牛肉麵。" },
+      { id: 109, name: "岡山籮筐會夜市 / 中山夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "岡山週一五六熱鬧夜市，品嚐岡山在地羊肉料理、炭烤牛排與地瓜球小吃。" },
+      { id: 110, name: "楠梓後勁夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "楠梓區週五六熱門夜市，後勁廟前鹹酥雞、現炸旗魚黑輪與手工粉圓冰人氣超高。" },
+      { id: 111, name: "鳳山中華街夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "鳳山捷運站旁老牌美食商圈，林天生肉燥飯、老牌雄米糕、潮州餛飩麵與愛玉冰。" },
+      { id: 112, name: "旗山夜市", region: "南部", city: "高雄市", category: "夜市美食", desc: "旗山火車站旁週二週六限定夜市，香蕉煎餅、傳統烤肉、現炒花枝與石板烤肉攤。" },
+      { id: 113, name: "旗山老街", region: "南部", city: "高雄市", category: "老街市集", desc: "香蕉王國發源地，獨特巴洛克式立面與石拱圈亭仔腳建築，必吃香蕉冰紅茶、香蕉蛋糕蛋捲。" },
+      { id: 114, name: "旗津老街廟前路", region: "南部", city: "高雄市", category: "老街市集", desc: "天后宮前海味大街，烤小管、炸螃蟹、番薯椪、白糖粿與旗魚黑輪熱鬧非凡。" },
+      { id: 115, name: "三鳳中街南北貨老街", region: "南部", city: "高雄市", category: "老街市集", desc: "高雄歷史最悠久的南北雜貨老街，過年過節熱鬧採買乾貨、蜜餞與在地糕餅首選。" },
+      { id: 116, name: "打狗英國領事館文化園區", region: "南部", city: "高雄市", category: "文化歷史", desc: "台灣第一座英國領事館官邸，依山面海巴洛克式拱廊，俯瞰高雄港開闊出海口。" },
+      { id: 117, name: "鳳儀書院", region: "南部", city: "高雄市", category: "文化歷史", desc: "全台現存規模最大清代書院古蹟，設有生動 Q 版公仔重現昔日科舉場景。" },
+      { id: 118, name: "駁二藝術特區", region: "南部", city: "高雄市", category: "文化歷史", desc: "港灣旁舊倉庫群轉型為藝術基地，輕軌穿梭倉庫公共裝置藝術間。" },
+      { id: 119, name: "蓮池潭龍虎塔", region: "南部", city: "高雄市", category: "文化歷史", desc: "龍口進、虎口出的傳統祈福七層寶塔，外國遊客來高雄指名地標。" },
+      { id: 120, name: "美濃客家民俗村", region: "南部", city: "高雄市", category: "文化歷史", desc: "手工彩繪油紙傘技藝、傳統藍衫展示、擂茶 DIY 與道地炒粄條巡禮。" },
+      { id: 121, name: "旗津燈塔與海岸步道", region: "南部", city: "高雄市", category: "自然風景", desc: "純白巴洛克風格燈塔，站在山頂坐擁高雄港大船入港的絕佳視野。" },
+      { id: 122, name: "田寮月世界", region: "南部", city: "高雄市", category: "自然風景", desc: "泥岩惡地形成的淒涼蒼茫地形，宛如置身於外太空月球表面。" },
+      { id: 123, name: "壽山柴山步道", region: "南部", city: "高雄市", category: "自然風景", desc: "珊瑚礁石灰岩地貌，垂掛如瀑布的錦屏藤氣根秘境與野生獼猴生態。" },
+
+      // ════════════════════ 南部地區：嘉義縣、嘉義市、台南市、屏東縣 ════════════════════
+      { id: 141, name: "朴子夜市", region: "南部", city: "嘉義縣", category: "夜市美食", desc: "嘉義縣規模最大、最具代表性的週六限定傳統大夜市，烤小管、傳統豆花人潮塞爆。" },
+      { id: 142, name: "民雄夜市", region: "南部", city: "嘉義縣", category: "夜市美食", desc: "民雄火車站旁週一熱鬧夜市，大學生宵夜聚落，臭豆腐、炭烤雞排與現打果汁攤雲集。" },
+      { id: 143, name: "水上夜市", region: "南部", city: "嘉義縣", category: "夜市美食", desc: "水上鄉週日經典流動夜市，滿滿在地人情味，蚵仔煎、當歸鴨、拔絲地瓜與童玩。" },
+      { id: 144, name: "大林夜市", region: "南部", city: "嘉義縣", category: "夜市美食", desc: "大林鎮週一週四營業老牌夜市，排骨酥湯、鐵板牛排、烤玉米與炸地瓜球香氣四溢。" },
+      { id: 145, name: "奮起湖老街", region: "南部", city: "嘉義縣", category: "老街市集", desc: "南台灣九份，品嚐老字號鐵路便當、野生愛玉、草仔粿與百年肖楠林漫步。" },
+      { id: 146, name: "太平老街", region: "南部", city: "嘉義縣", category: "老街市集", desc: "海拔千公尺的雲端老街，老街紅磚建築保留淳樸農村風貌，品嚐高山茶與手作良糕。" },
+      { id: 147, name: "國立故宮博物院南部院區", region: "南部", city: "嘉義縣", category: "文化歷史", desc: "結合書法筆墨流線意象的當代博物館，典藏亞洲多元藝術文化展品大氣磅礡。" },
+      { id: 148, name: "阿里山國家森林遊樂區", region: "南部", city: "嘉義縣", category: "自然風景", desc: "日出、雲海、神木、鐵道與晚霞五大奇景，享受經典高山小火車。" },
+      { id: 149, name: "太平雲梯", region: "南部", city: "嘉義縣", category: "自然風景", desc: "全台海拔最高景觀吊橋，俯瞰嘉南平原萬家燈火與壯麗梅山 36 彎。" },
+
+      { id: 130, name: "嘉義文化路觀光夜市", region: "南部", city: "嘉義市", category: "夜市美食", desc: "整條街美食雲集，林聰明沙鍋魚頭、阿娥豆花、郭家雞肉飯與方塊酥名產。" },
+      { id: 131, name: "嘉義彌陀夜市", region: "南部", city: "嘉義市", category: "夜市美食", desc: "嘉義週三週五限定在地傳統夜市，排骨酥、蚵仔煎、牛排與特色古早味飲品。" },
+      { id: 132, name: "檜意森活村", region: "南部", city: "嘉義市", category: "文化歷史", desc: "全台保留最完整的日式官舍建築聚落，昔日阿里山林業開發基地，宛如京都街頭。" },
+      { id: 133, name: "嘉義市立美術館", region: "南部", city: "嘉義市", category: "文化歷史", desc: "菸酒公賣局日治古典建築融合當代新建築木構，氣質優雅展現畫都嘉義歷史。" },
+
+      { id: 124, name: "花園夜市", region: "南部", city: "台南市", category: "夜市美食", desc: "稱霸全台的旗海飛揚巨型夜市（四、六、日），二師兄滷味、紅妃香腸炒米腸與麻辣鴨血。" },
+      { id: 125, name: "大東夜市 / 大東東夜市", region: "南部", city: "台南市", category: "夜市美食", desc: "台南週一二五必逛，阿美芭樂、原木烤肉、地瓜球與拔絲地瓜人氣鼎沸。" },
+      { id: 126, name: "武聖夜市", region: "南部", city: "台南市", category: "夜市美食", desc: "台南歷史最悠久的三合一老夜市（三、五、六），老字號雞蛋糕與沙威瑪排隊名店。" },
+      { id: 127, name: "小北成功夜市", region: "南部", city: "台南市", category: "夜市美食", desc: "台南傳統週二五夜市，在地鄉親從小吃到大，統大炭烤雞排、香腸炒米腸與傳統豆花。" },
+      { id: 128, name: "安平老街（延平街）", region: "南部", city: "台南市", category: "老街市集", desc: "台灣第一街，石板道路兩側販售正宗安平蝦餅、蜜餞、周氏蝦捲與蚵仔煎。" },
+      { id: 129, name: "新化老街", region: "南部", city: "台南市", category: "老街市集", desc: "保留完整巴洛克風格立面街屋，品嚐新化燒餅、茶葉蛋與古早味冬瓜檸檬。" },
+      { id: 150, name: "台南神農街", region: "南部", city: "台南市", category: "文化歷史", desc: "五條港清代保留至今的水岸老街，夜晚掛滿復古燈籠，傳統街屋與文青小店交織。" },
+      { id: 151, name: "赤崁樓（普羅民遮城）", region: "南部", city: "台南市", category: "文化歷史", desc: "荷蘭人在1653年建造的歷史據點，九座清代贔屭御碑與紅瓦樓閣相映生輝。" },
+      { id: 152, name: "安平古堡（熱蘭遮城）", region: "南部", city: "台南市", category: "文化歷史", desc: "台灣最早要塞建築，老榕樹盤根錯節紅磚殘壁，見證大航海時代台江歷史滄桑。" },
+      { id: 153, name: "台南孔子廟", region: "南部", city: "台南市", category: "文化歷史", desc: "全臺首學，建於明鄭時期，紅牆燕尾端莊典雅，傳承數百年祭孔大典。" },
+      { id: 154, name: "奇美博物館", region: "南部", city: "台南市", category: "文化歷史", desc: "宏偉的西洋古典宮廷建築、阿波羅噴泉與豐富西方古典藝術、樂器、兵器珍藏。" },
+      { id: 155, name: "四草綠色隧道", region: "南部", city: "台南市", category: "自然風景", desc: "台版亞馬遜河，搭乘膠筏穿梭於濃密紅樹林形成的樹冠天然綠廊。" },
+      { id: 156, name: "井仔腳瓦盤鹽田", region: "南部", city: "台南市", category: "自然風景", desc: "現存最古老瓦盤鹽田，棋盤狀鹽田倒映出無與倫比的火燒雲夕陽。" },
+
+      { id: 135, name: "屏東民族路觀光夜市", region: "南部", city: "屏東縣", category: "夜市美食", desc: "全天候在地美食集散地，進來涼冰品、上好肉粽、肉圓與夜市老牌土魠魚羹。" },
+      { id: 136, name: "墾丁大街夜市", region: "南部", city: "屏東縣", category: "夜市美食", desc: "南台灣不夜城海灘度假夜市，烤魷魚、調酒飲品、炸鮮奶與泰式料理小攤。" },
+      { id: 137, name: "潮州夜市", region: "南部", city: "屏東縣", category: "夜市美食", desc: "屏東潮州週一週五熱鬧流動夜市，地瓜球、烤玉米、旗魚黑輪與當歸鴨肉麵線。" },
+      { id: 138, name: "恆春老街", region: "南部", city: "屏東縣", category: "老街市集", desc: "古城內的懷舊街道，品嚐綠豆蒜冰品、鴨肉冬粉與參觀阿嘉的家海角七號景點。" },
+      { id: 139, name: "勝利星村創意生活園區", region: "南部", city: "屏東縣", category: "文化歷史", desc: "全台最大日式將軍眷村活化基地，進駐獨立書店、旗袍租借、風格餐廳與文創手作。" },
+      { id: 140, name: "恆春古城與南門", region: "南部", city: "屏東縣", category: "文化歷史", desc: "台灣現存最完整的百年清代磚石城牆與城門，保留砲台漫步步道。" },
+      { id: 157, name: "墾丁龍磐公園", region: "南部", city: "屏東縣", category: "自然風景", desc: "壯麗的崩崖地形與遼闊的太平洋海景，也是無光害觀星好去處。" },
+
+      // ════════════════════ 北部地區 (雙北、基桃竹宜) ════════════════════
+      { id: 161, name: "士林觀光夜市", region: "北部", city: "台北市", category: "夜市美食", desc: "台北最具規模指標夜市，豪大大雞排、生煎包、忠誠號蚵仔煎與地下美食街。" },
+      { id: 162, name: "寧夏觀光夜市", region: "北部", city: "台北市", category: "夜市美食", desc: "老台北千歲宴聞名，劉芋仔蛋黃芋餅、圓環邊蚵仔煎與豬肝榮仔米其林名攤。" },
+      { id: 163, name: "饒河街觀光夜市", region: "北部", city: "台北市", category: "夜市美食", desc: "牌樓璀璨壯觀，福州世祖胡椒餅、陳董藥燉排骨與麻辣臭豆腐排隊聚集。" },
+      { id: 164, name: "臨江街觀光夜市（通化街）", region: "北部", city: "台北市", category: "夜市美食", desc: "信義安和都會型夜市，御品元冰火湯圓、紅花麻辣鹽水雞與駱記小炒。" },
+      { id: 165, name: "南機場夜市", region: "北部", city: "台北市", category: "夜市美食", desc: "山內雞肉、阿男麻油雞、秀昌水餃等無數高 CP 值銅板美食名攤。" },
+      { id: 166, name: "公館夜市", region: "北部", city: "台北市", category: "夜市美食", desc: "台大學生美食天堂，青蛙撞奶、藍家割包與雄記蔥抓餅名店雲集。" },
+      { id: 167, name: "師大龍泉商圈夜市", region: "北部", city: "台北市", category: "夜市美食", desc: "文青學生美食天地，燈籠滷味、許記生煎包與師園鹽酥雞發源地。" },
+      { id: 168, name: "迪化街老街", region: "北部", city: "台北市", category: "老街市集", desc: "大稻埕中藥、南北雜貨與布匹老街，近年注入極多老宅咖啡廳與文創手作小館。" },
+      { id: 169, name: "國立故宮博物院", region: "北部", city: "台北市", category: "文化歷史", desc: "世界四大博物館之一，典藏近七十萬件中華歷代宮廷瑰寶、翠玉白菜與肉形石。" },
+      { id: 170, name: "艋舺龍山寺", region: "北部", city: "台北市", category: "文化歷史", desc: "國定古蹟，創建於清乾隆年間，雕樑畫棟、香火鼎盛，見證台北艋舺繁華史。" },
+      { id: 171, name: "北投溫泉博物館", region: "北部", city: "台北市", category: "文化歷史", desc: "日治時期東亞最大公共浴場，洋溢英式鄉村都鐸風情與和風木造浴池歷史。" },
+      { id: 172, name: "松山文創園區", region: "北部", city: "台北市", category: "文化歷史", desc: "日治時期松山菸廠老廠房改建，結合生態池、古蹟建築與現代文創藝術展演。" },
+      { id: 173, name: "陽明山夢幻湖", region: "北部", city: "台北市", category: "自然風景", desc: "雲霧繚繞的生態保護區，步道平緩好走，秋天賞芒與健行熱門景點。" },
+      { id: 174, name: "象山親山步道", region: "北部", city: "台北市", category: "自然風景", desc: "登頂六巨石遠眺台北 101 與繁華信義區夜景的經典健行步道。" },
+
+      { id: 175, name: "樂華觀光夜市", region: "北部", city: "新北市", category: "夜市美食", desc: "永和最熱門夜市，阿爸的芋圓蔗片冰、三鮮羹、郭記麻辣鴨血豆腐。" },
+      { id: 176, name: "湳雅觀光夜市", region: "北部", city: "新北市", category: "夜市美食", desc: "板橋人的深夜廚房，眼鏡仔豬血湯、麻油雞麵線與現炸旗魚黑輪熱門首選。" },
+      { id: 177, name: "三重三和夜市", region: "北部", city: "新北市", category: "夜市美食", desc: "三和路人氣傳統夜市，萬粒肉圓、阿文餛飩湯圓、脆皮炸雞排與蚵仔煎老店。" },
+      { id: 178, name: "九份老街", region: "北部", city: "新北市", category: "老街市集", desc: "依山傍海的山城風光，濃郁懷舊紅燈籠與道地芋圓甜品聚落。" },
+      { id: 179, name: "三峽老街", region: "北部", city: "新北市", category: "老街市集", desc: "保存完整的紅磚拱廊與巴洛克式立面，品嚐著名的金牛角麵包與古早味染布。" },
+      { id: 180, name: "淡水老街（中正路）", region: "北部", city: "新北市", category: "老街市集", desc: "金色水岸旁，品嚐淡水阿給、魚酥、鐵蛋、酸梅湯，順遊夕陽落日水色。" },
+      { id: 181, name: "鶯歌陶瓷老街", region: "北部", city: "新北市", category: "老街市集", desc: "台灣陶瓷重鎮，體驗手拉胚 DIY，漫步於石板鋪設的特色藝術陶瓷小街。" },
+      { id: 182, name: "深坑老街", region: "北部", city: "新北市", category: "老街市集", desc: "豆腐故鄉，炭燒香氣的紅燒、麻辣與炸臭豆腐美食匯聚之地。" },
+      { id: 183, name: "淡水紅毛城與小白宮", region: "北部", city: "新北市", category: "文化歷史", desc: "經歷西班牙、荷蘭與英國領事館時期，紅磚洋樓見證淡水開港歷史。" },
+      { id: 184, name: "林本源園邸（板橋林家花園）", region: "北部", city: "新北市", category: "文化歷史", desc: "台灣保存最完整的古典園林建築，江南庭園樓閣造景典雅幽深。" },
+      { id: 185, name: "鼻頭角稜谷步道", region: "北部", city: "新北市", category: "自然風景", desc: "台版萬里長城，蜿蜒於翠綠山稜線上，俯瞰壯麗的太平洋海景。" },
+
+      { id: 186, name: "基隆廟口夜市", region: "北部", city: "基隆市", category: "夜市美食", desc: "百年奠濟宮前成排黃燈籠，鼎邊趖、泡泡冰、營養三明治名揚海內外。" },
+      { id: 187, name: "二沙灣砲台（海門天險）", region: "北部", city: "基隆市", category: "文化歷史", desc: "清代鴉片戰爭重要海防堡壘，城門石砌拱洞與古砲台矗立山頭俯瞰基隆港。" },
+
+      { id: 188, name: "中壢觀光夜市", region: "北部", city: "桃園市", category: "夜市美食", desc: "全長近千公尺的新明夜市，簡師傅麻辣臭豆腐、溫記豆花與排隊地瓜球。" },
+      { id: 189, name: "桃園觀光夜市", region: "北部", city: "桃園市", category: "夜市美食", desc: "北埔路在地美食聚集，花枝羹、烤肉串、蚵仔麵線與傳統甜不辣。" },
+      { id: 190, name: "中原夜市", region: "北部", city: "桃園市", category: "夜市美食", desc: "中原大學旁平價量大美食天堂，御冠園鮮肉湯包、地瓜球與皇后脆皮泡芙。" },
+      { id: 191, name: "大溪老街", region: "北部", city: "桃園市", category: "老街市集", desc: "巴洛克式立面牌樓建築，著名大溪豆干、月光餅與木藝文化發源地。" },
+      { id: 192, name: "三坑老街", region: "北部", city: "桃園市", category: "老街市集", desc: "龍潭客家老街，保留黑白洗農村洗衣古蹟，品嚐客家牛汶水甜品與客家菜包。" },
+
+      { id: 193, name: "新竹城隍廟商圈", region: "北部", city: "新竹市", category: "夜市美食", desc: "全台地位最高的城隍廟，廟前集結郭家米粉、貢丸湯、阿城號炒米粉與潤餅。" },
+      { id: 194, name: "北埔老街", region: "北部", city: "新竹縣", category: "老街市集", desc: "全台古蹟密度最高的老街之一，客家擂茶 DIY 與傳統客家菜包必嚐。" },
+      { id: 195, name: "湖口老街", region: "北部", city: "新竹縣", category: "老街市集", desc: "紅磚拱廊完整保留的長形老街，三元宮前品嚐客家板條、客家擂茶與地瓜餅。" },
+
+      { id: 196, name: "羅東觀光夜市", region: "北部", city: "宜蘭縣", category: "夜市美食", desc: "全宜蘭最旺夜市，阿灶伯當歸羊肉湯、三星蔥肉串、義豐蔥油派與包心粉圓。" },
+      { id: 197, name: "宜蘭東門觀光夜市", region: "北部", city: "宜蘭縣", category: "夜市美食", desc: "鐵路陸橋下在地老牌夜市，梁大胖碳烤、彭記蔥油餅與嘟好燒傳統點心。" },
+      { id: 198, name: "頭城老街", region: "北部", city: "宜蘭縣", category: "老街市集", desc: "開蘭第一街，見證宜蘭開墾史，保留清代與日治紅磚洋樓建築與石板小巷。" },
+      { id: 199, name: "見晴懷古步道", region: "北部", city: "宜蘭縣", category: "自然風景", desc: "太平山舊運材鐵道，曾獲選全球最美步道之一，森林雲霧繚繞宛如仙境。" },
+
+      // ════════════════════ 中部地區 (中彰投苗雲) ════════════════════
+      { id: 201, name: "逢甲觀光夜市", region: "中部", city: "台中市", category: "夜市美食", desc: "全台夜市創意發源地，明倫蛋餅、日船章魚小丸子、大腸包小腸與一心臭豆腐。" },
+      { id: 202, name: "一中商圈夜市", region: "中部", city: "台中市", category: "夜市美食", desc: "學生族群熱門聚落，一中豪大雞排、上和園滷味、打餅舖烙餅與豐仁冰。" },
+      { id: 203, name: "旱溪觀光夜市", region: "中部", city: "台中市", category: "夜市美食", desc: "台中在地人最推夜市，方臉師傅蒜香豆干、波蘭手工蛋糕與東北小將烤肉。" },
+      { id: 204, name: "大慶觀光夜市", region: "中部", city: "台中市", category: "夜市美食", desc: "南區超大露天彩繪夜市（三、五、六、日），烤麵筋、地瓜球與牛排攤雲集。" },
+      { id: 205, name: "東海別墅夜市", region: "中部", city: "台中市", category: "夜市美食", desc: "東海大學旁熱鬧商圈，東海刈包大王、蓮心冰雞爪凍與黑肉圓老店。" },
+      { id: 206, name: "忠孝路觀光夜市", region: "中部", city: "台中市", category: "夜市美食", desc: "台中南區知名常設美食街，味泉米糕、正老牌麵線糊、蔡家豆花與烤肉之家。" },
+      { id: 207, name: "霧峰林家宮保第園區", region: "中部", city: "台中市", category: "文化歷史", desc: "台灣僅存清代一品官宅大花廳戲台，精緻雕花木刻彰顯台灣五大家族非凡氣派。" },
+      { id: 208, name: "審計新村", region: "中部", city: "台中市", category: "文化歷史", desc: "由省府時期老宿舍群活化改造，充滿懷舊眷舍紅磚與青年手作文創市集。" },
+      { id: 209, name: "高美濕地", region: "中部", city: "台中市", category: "自然風景", desc: "台灣最著名的日落步道之一，風力發電機搭配鏡面潮間帶美景震撼。" },
+
+      { id: 210, name: "精誠夜市（狗皮夜市）", region: "中部", city: "彰化縣", category: "夜市美食", desc: "彰化規模最大週三/五六流動夜市，松林烤肉、生炒鴨肉羹、蔥油餅排隊長龍。" },
+      { id: 211, name: "鹿港老街", region: "中部", city: "彰化縣", category: "老街市集", desc: "保留紅磚古道、九曲巷與古蹟廟宇，處處充滿濃郁歷史底蘊與道地肉包小吃。" },
+      { id: 212, name: "彰化扇形車庫", region: "中部", city: "彰化縣", category: "文化歷史", desc: "全台僅存唯一運作中的扇形火車頭庫房，被譽為國寶級鐵道文化活古蹟。" },
+      { id: 213, name: "鹿港龍山寺", region: "中部", city: "彰化縣", category: "文化歷史", desc: "國定古蹟，有台灣紫禁城美譽，八卦藻井木雕結構全以榫卯接合。" },
+
+      { id: 214, name: "草鞋墩人文觀光夜市", region: "中部", city: "南投縣", category: "夜市美食", desc: "南投草屯週五六日大型夜市，阿里山鐵道紅茶、烤山豬肉香腸與蚵仔煎。" },
+      { id: 215, name: "車埕老街聚落", region: "中部", city: "南投縣", category: "老街市集", desc: "依山傍水的最後火車站，山林圍繞的隱密林業小鎮，品嚐木桶便當與手工木工。" },
+      { id: 216, name: "水里蛇窯陶藝文化園區", region: "中部", city: "南投縣", category: "文化歷史", desc: "全台最古老柴燒木柴蛇窯，長達數十公尺如長蛇盤踞，傳承台灣傳統製陶工藝。" },
+      { id: 217, name: "中興新村省府園區", region: "中部", city: "南投縣", category: "文化歷史", desc: "仿英國花園城市規劃的台灣省政府舊址，整齊林蔭大道與囊底路眷舍綠意盎然。" },
+      { id: 218, name: "日月潭水社壩", region: "中部", city: "南投縣", category: "自然風景", desc: "全球最美自行車道之一，平靜如鏡的湖光山色令人心曠神怡。" },
+      { id: 219, name: "清境農場青青草原", region: "中部", city: "南投縣", category: "自然風景", desc: "綿延翠綠的高山草原、綿羊秀與壯闊的合歡山群峰視野。" },
+
+      { id: 220, name: "南庄老街桂花巷", region: "中部", city: "苗栗縣", category: "老街市集", desc: "古色古香客家聚落，品嚐桂花釀冰鎮湯圓、客家米食麻糬與丈母娘豆干。" },
+      { id: 221, name: "勝興車站與魚藤坪斷橋", region: "中部", city: "苗栗縣", category: "文化歷史", desc: "舊山線海拔最高點百年木造火車站，糯米砌成斷橋紅磚屹立不搖展現鐵道工藝。" },
+      { id: 222, name: "後龍好望角", region: "中部", city: "苗栗縣", category: "自然風景", desc: "站在高聳海邊台地俯瞰白色大風車、海線鐵道奔馳與夕陽海岸線。" },
+
+      { id: 223, name: "斗六人文夜市", region: "中部", city: "雲林縣", category: "夜市美食", desc: "雲林最大夜市，佔地寬廣攤位數百家，雅淳水果茶、現烤披薩與炭烤大雞排。" },
+      { id: 224, name: "虎尾夜市（拜五街）", region: "中部", city: "雲林縣", category: "夜市美食", desc: "雲林虎尾週五最熱鬧夜市，拔絲地瓜、麻辣魚蛋、現切水果與烤玉米名攤。" },
+      { id: 225, name: "西螺延平老街", region: "中部", city: "雲林縣", category: "老街市集", desc: "保留完整裝飾藝術風（Art Deco）街屋，老牌黑豆醬油工廠與西螺麻糬飄香。" },
+      { id: 226, name: "北港中山路老街", region: "中部", city: "雲林縣", category: "老街市集", desc: "朝天宮前熱鬧古街，販售北港傳統大餅、手工麻油、花生酥與在地鴨肉羹。" },
+      { id: 227, name: "北港朝天宮", region: "中部", city: "雲林縣", category: "文化歷史", desc: "國定古蹟，台灣媽祖信仰中心，廟內石雕木雕由清代名匠精雕細琢。" },
+
+      // ════════════════════ 東部地區 (花蓮、台東) ════════════════════
+      { id: 231, name: "東大門國際觀光夜市", region: "東部", city: "花蓮縣", category: "夜市美食", desc: "東台灣最大夜市，匯聚原住民一條街、福町夜市與各省一條街，烤飛魚強蛋餅必吃。" },
+      { id: 232, name: "花蓮文化創意老街坊", region: "東部", city: "花蓮縣", category: "老街市集", desc: "百年舊酒廠日式黑瓦房舍群，週末舉辦手作市集、文創小店與獨立展演聚落。" },
+      { id: 233, name: "吉安慶修院", region: "東部", city: "花蓮縣", category: "文化歷史", desc: "台灣保存最完整的日式真言宗寺院古蹟，江戶風格木造佛堂充滿靜謐禪意。" },
+      { id: 234, name: "林田山林業文化園區", region: "東部", city: "花蓮縣", category: "文化歷史", desc: "昔日東台灣第四大林場「小摩里沙卡」，完整保存日式檜木建築聚落與運材鐵道。" },
+      { id: 235, name: "七星潭風景區", region: "東部", city: "花蓮縣", category: "自然風景", desc: "美麗的新月形礫石海灣，聽著浪花拍打鵝卵石的療癒聲音放空。" },
+      { id: 236, name: "太魯閣燕子口", region: "東部", city: "花蓮縣", category: "自然風景", desc: "舉世聞名的大理石峽谷鬼斧神工地形，臨場感壯觀無比。" },
+
+      { id: 237, name: "台東觀光夜市（正氣路）", region: "東部", city: "台東縣", category: "夜市美食", desc: "四、五、六正氣路封街夜市，派克脆皮雞排、烤肉刈包、東山鴨頭與釋迦冰淇淋。" },
+      { id: 238, name: "四維路夜市", region: "東部", city: "台東縣", category: "夜市美食", desc: "台東週日限定大型傳統流動夜市，在地鄉親採買小吃、套圈圈童玩勝地。" },
+      { id: 239, name: "關山老街", region: "東部", city: "台東縣", category: "老街市集", desc: "日治時期棋盤式街道規劃，保留百年木造站房、嘉賓旅社與在地傳統花生酥老舖。" },
+      { id: 240, name: "成功老街新港漁港", region: "東部", city: "台東縣", category: "老街市集", desc: "東海岸最大漁港街區，觀賞熱鬧拍賣旗魚、品嚐現切生魚片與海產海味。" },
+      { id: 241, name: "國立臺灣史前文化博物館", region: "東部", city: "台東縣", category: "文化歷史", desc: "全台首座國家級考古與南島語族文化博物館，展出卑南遺址出土珍貴玉器陶器。" },
+      { id: 242, name: "伯朗大道", region: "東部", city: "台東縣", category: "自然風景", desc: "一望無際的稻浪鄉間道路，騎單車馳騁於無電線桿的綠色天堂中。" },
+      { id: 243, name: "三仙台跨海步橋", region: "東部", city: "台東縣", category: "自然風景", desc: "八拱跨海波浪大橋連接離島岬角，是全台迎第一道曙光的指標景點。" }
+    ];
+
+    let currentRegion = "all";
+    let currentCity = "all";
+    let currentCategory = "all";
+    let searchQuery = "";
+    let showFavoritesOnly = false;
+    let favorites = JSON.parse(localStorage.getItem("taiwan_travel_favs")) || [];
+
+    const cardsGrid = document.getElementById("cardsGrid");
+    const searchInput = document.getElementById("searchInput");
+    const randomBtn = document.getElementById("randomBtn");
+    const favFilterBtn = document.getElementById("favFilterBtn");
+    const favCountSpan = document.getElementById("favCount");
+    const displayCountSpan = document.getElementById("displayCount");
+    const activeFilterDesc = document.getElementById("activeFilterDesc");
+    const cityContainer = document.getElementById("cityContainer");
+    const cityGroupWrapper = document.getElementById("cityGroupWrapper");
+    const randomModal = document.getElementById("randomModal");
+    const modalSpotName = document.getElementById("modalSpotName");
+    const modalSpotDesc = document.getElementById("modalSpotDesc");
+    const modalMapLink = document.getElementById("modalMapLink");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    function updateCityButtons() {
+      if (currentRegion === "all") {
+        cityGroupWrapper.style.display = "none";
+        currentCity = "all";
+        return;
+      }
+
+      cityGroupWrapper.style.display = "flex";
+      const cities = REGION_CITIES[currentRegion] || [];
+      
+      let html = `<button class="pill-btn ${currentCity === 'all' ? 'active' : ''}" data-city="all">全${currentRegion}</button>`;
+      cities.forEach(city => {
+        html += `<button class="pill-btn ${currentCity === city ? 'active' : ''}" data-city="${city}">${city}</button>`;
+      });
+      cityContainer.innerHTML = html;
+
+      cityContainer.querySelectorAll('[data-city]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          cityContainer.querySelectorAll('[data-city]').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          currentCity = e.target.getAttribute('data-city');
+          renderCards();
+        });
+      });
+    }
+
+    function getFilteredSpots() {
+      return SPOTS_DATA.filter(spot => {
+        const matchRegion = currentRegion === "all" || spot.region === currentRegion;
+        const matchCity = currentCity === "all" || spot.city === currentCity;
+        const matchCategory = currentCategory === "all" || spot.category === currentCategory;
+        const matchSearch = spot.name.includes(searchQuery) || 
+                            spot.city.includes(searchQuery) || 
+                            spot.desc.includes(searchQuery);
+        const matchFav = !showFavoritesOnly || favorites.includes(spot.id);
+        return matchRegion && matchCity && matchCategory && matchSearch && matchFav;
+      });
+    }
+
+    function renderCards() {
+      const filtered = getFilteredSpots();
+      displayCountSpan.textContent = filtered.length;
+      favCountSpan.textContent = favorites.length;
+
+      let desc = currentRegion === "all" ? "全部地區" : currentRegion;
+      if (currentCity !== "all") desc += ` ➜ ${currentCity}`;
+      if (currentCategory !== "all") desc += ` ➜ ${currentCategory}`;
+      if (showFavoritesOnly) desc += ` ➜ ❤️ 已收藏`;
+      activeFilterDesc.textContent = desc;
+
+      if (filtered.length === 0) {
+        cardsGrid.innerHTML = `
+          <div class="empty-state">
+            <p style="font-size: 2rem;">🏮</p>
+            <p>沒有找到符合條件的景點、夜市或老街，換個關鍵字搜尋看看吧！</p>
+          </div>
+        `;
+        return;
+      }
+
+      cardsGrid.innerHTML = filtered.map(spot => {
+        const isFav = favorites.includes(spot.id);
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.city + ' ' + spot.name)}`;
+        return `
+          <div class="spot-card">
+            <div>
+              <div class="spot-header">
+                <div class="spot-name">${spot.name}</div>
+                <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(${spot.id})" title="加入口袋名單">
+                  ${isFav ? '❤️' : '🤍'}
+                </button>
+              </div>
+              <div class="spot-meta">
+                <span class="meta-tag region">${spot.region} · ${spot.city}</span>
+                <span class="meta-tag">${spot.category}</span>
+              </div>
+              <div class="spot-desc">${spot.desc}</div>
+            </div>
+            <div class="spot-footer">
+              <a href="${mapUrl}" target="_blank" rel="noopener noreferrer">
+                在 Google 地圖中查看 ↗
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleFavorite = function(id) {
+      if (favorites.includes(id)) {
+        favorites = favorites.filter(favId => favId !== id);
+      } else {
+        favorites.push(id);
+      }
+      localStorage.setItem("taiwan_travel_favs", JSON.stringify(favorites));
+      renderCards();
+    };
+
+    document.querySelectorAll('[data-region]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentRegion = e.target.getAttribute('data-region');
+        currentCity = "all";
+        updateCityButtons();
+        renderCards();
+      });
+    });
+
+    document.querySelectorAll('[data-category]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-category]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentCategory = e.target.getAttribute('data-category');
+        renderCards();
+      });
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderCards();
+    });
+
+    favFilterBtn.addEventListener('click', () => {
+      showFavoritesOnly = !showFavoritesOnly;
+      favFilterBtn.classList.toggle('active', showFavoritesOnly);
+      favFilterBtn.style.background = showFavoritesOnly ? '#ef4444' : '';
+      favFilterBtn.style.color = showFavoritesOnly ? 'white' : '';
+      renderCards();
+    });
+
+    randomBtn.addEventListener('click', () => {
+      const candidates = getFilteredSpots();
+      if (candidates.length === 0) {
+        alert("目前篩選條件下沒有景點可以抽取喔！");
+        return;
+      }
+      const randomSpot = candidates[Math.floor(Math.random() * candidates.length)];
+      modalSpotName.textContent = `${randomSpot.city} · ${randomSpot.name}`;
+      modalSpotDesc.textContent = randomSpot.desc;
+      modalMapLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(randomSpot.city + ' ' + randomSpot.name)}`;
+      randomModal.style.display = "flex";
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      randomModal.style.display = "none";
+    });
+
+    updateCityButtons();
+    renderCards();
+  </script>
+</body>
+</html>
